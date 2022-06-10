@@ -1,0 +1,67 @@
+---
+title: "Data processing assignment: Exam examiner"
+output: html_notebook
+---
+
+
+## The data
+
+The file `exam_results.xlsx` contains data about some (fictional) students taking modules in a (fictional) Physics department.
+
+
+
+## The tasks
+
+0. Load this file into a dataframe. What are the observations and what are the variables?
+
+```{r}
+library(tidyverse)
+library(readxl)
+
+exam <- read_excel("assets/exam_results.xlsx")
+str(exam)
+head(exam)
+```
+
+
+1. Tidy the data.
+
+```{r}
+# exam <- exam %>%
+exam_tidied <- exam %>%
+    gather(c("2019", "2020"), key = "Year", value = "Grade", na.rm = TRUE) %>%
+    mutate(Year = as.integer(Year)) %>%
+    separate(col = "Degree Programme", sep = " with ", into = c("Degree + Major", "Minor")) %>%
+    separate(col = "Degree + Major", sep = " ", into = c("Degree", "Major"))
+
+exam_tidied
+```
+
+
+2. Using your tidied data, answer the following questions:
+
+a) For MSci students, what is the mean grade for the Relativity exam?
+
+```{r}
+mean_msci_relativity <- exam_tidied %>%
+    filter(Degree == "MSci" & Module == "Relativity") %>%
+    pull(Grade) %>%
+    mean()
+
+mean_msci_relativity
+```
+
+
+b) What proportion of the students are taking Physics as their major subject?
+
+```{r}
+is_major_physics <- exam_tidied %>%
+    count(Major == "Physics") %>%
+    mutate(prop = n / sum(n))
+
+is_major_physics
+```
+
+
+
+---

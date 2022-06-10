@@ -1,0 +1,156 @@
+---
+title: "Data processing assignment: COVID-19"
+output: html_notebook
+---
+
+
+## The data
+
+You are provided with a CSV file, `covid-19.csv` which was downloaded from the EU's open data portal, https://data.europa.eu/euodp/en/home. This file contains data for COVID-19 cases and deaths for each country since the end of 2019.
+
+The dates given in the first column are in the format `dd/mm/yyyy`, e.g. `16/05/2020`.
+These can be converted to R's `date` datatype using the `dmy()` function from the tidyverse `lubridate` package:
+
+```{r}
+library(tidyverse)
+library(lubridate)
+
+dmy("16/05/2020")
+```
+
+
+## The tasks
+
+0. Use the tidyverse functions to load this file into a dataframe and convert the dates from strings to the `date` datatype.
+
+```{r}
+covid <- read_csv("assets/covid-19.csv") %>%
+    mutate(date = dmy(dateRep))
+
+str(covid)
+head(covid)
+```
+
+---
+
+Now create figures to show the following:
+
+1. Daily cases for a single country.
+
+```{r}
+unique(covid$countriesAndTerritories)
+```
+
+```{r}
+covid %>%
+    filter(countriesAndTerritories == "United_Kingdom") %>%
+    ggplot(aes(x = date, y = cases)) +
+    geom_line()
+```
+
+
+2. Weekly cases for a single country. *Hint*: use `week()` to convert a date to a number representing the week of the year.
+
+```{r}
+covid %>%
+    mutate(week = week(date)) %>%
+    filter(year == 2020 & countriesAndTerritories == "United_Kingdom") %>%
+    group_by(week) %>%
+    summarise(weeklyCases = sum(cases)) %>%
+    ggplot(aes(x = week, y = weeklyCases)) +
+    geom_col()
+```
+
+
+3. Cumulative daily cases for a single country. *Hint*: use `arrange()` and `cumsum()`
+
+
+```{r}
+covid %>%
+    filter(countriesAndTerritories == "United_Kingdom") %>%
+    arrange(date) %>%
+    mutate(totalCases = cumsum(cases)) %>%
+    ggplot(aes(x = date, y = totalCases)) +
+    geom_line()
+```
+
+4. Daily cases for each continent. *Hint*: use `group_by()` and `summarise()`
+
+```{r}
+covid %>%
+    arrange(date) %>%
+    group_by(continentExp, date) %>%
+    summarise(dailyContinentCases = sum(cases)) %>%
+    ggplot(aes(x = date, y = dailyContinentCases, color = continentExp)) +
+    geom_line()
+```
+
+
+5. Apparent overall mortality rate (total deaths / total cases) for each country, grouped by continent.
+
+```{r}
+covid %>%
+    group_by(continentExp, countriesAndTerritories) %>%
+    summarise(totalDeaths = sum(deaths), totalCases = sum(cases)) %>%
+    mutate(mortalityRate = totalDeaths / totalCases) %>%
+    ggplot(aes(x = continentExp, y = mortalityRate, fill = continentExp)) +
+    geom_boxplot()
+```
+
+---
+
+6. The UK (Referred to as "United_Kingdom" in this data set) has a strong weekly periodicity in reported COVID-19 deaths.
+
+(a) Make a plot to illustrate this effect as clearly as possible. *Hint*: `lubridate` provides a function `wday()` which returns the day of the week as an integer, starting from 1 = Sunday.
+
+```{r}
+name <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+covid %>%
+    filter(countriesAndTerritories == "United_Kingdom") %>%
+    mutate(weekday = as.character(wday(date))) %>%
+    group_by(weekday) %>%
+    summarise(weekdayDeaths = sum(deaths)) %>%
+    ggplot(aes(x = weekday, y = weekdayDeaths, fill = weekday)) +
+    geom_col() +
+    guides(fill = "none") +
+    scale_x_discrete(labels = name)
+```
+
+(b) Show that the number of deaths reported on Mondays and Tuesdays is significantly lower than on other days.
+
+```{r}
+name = c("Other", "Monday + Tuesday", "Monday + Tuesday", "Other", "Other", "Other", "Other")
+covid %>%
+    # filter(year == 2020, month == 10, countriesAndTerritories == "United_Kingdom") %>%
+    filter(countriesAndTerritories == "United_Kingdom") %>%
+    mutate(week = week(date), weekday = wday(date), dayclass = name[weekday]) %>%
+    group_by(week, dayclass) %>%
+    summarise(mean_deaths = mean(deaths)) %>%
+    spread(key = dayclass, value = mean_deaths) %>%
+    filter(`Monday + Tuesday` > 0 | Other > 0)
+```
+
+(c) Do any other countries show a similar periodicity?
+
+```{r}
+name <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+covid %>%
+    filter(countriesAndTerritories == "China") %>%
+    mutate(weekday = as.character(wday(date))) %>%
+    group_by(weekday) %>%
+    summarise(weekdayDeaths = sum(deaths)) %>%
+    ggplot(aes(x = weekday, y = weekdayDeaths, fill = weekday)) +
+    geom_col() +
+    guides(fill = "none") +
+    scale_x_discrete(labels = name)
+```
+
+(d) How could you explain what is happening, and what are the implications for how we use the data?
+
+Explanations:
+- Significant less Mon/Tue cases reported in UK: maybe people don't go out (and infected) on weekends. Test results may have around 2 days delay.
+- Significant more Fri cases reported in China: I don't trust their data at all.
+
+Implications:
+- Data is part of history and speaks facts. With proper processing, it may reveal general trends that inspire prediction or decision.
+---
