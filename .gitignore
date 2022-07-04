@@ -50,3 +50,9 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Mac OS X Finder
+.DS_Store
+
+# Jupyter Notebook
+.ipynb_checkpoints
