@@ -2,7 +2,7 @@
 title: "Data Analysis of the Pima Indians Diabetes Dataset using Regressions in R"
 author: "Fernando Guntoro and Sonja Tang"
 date: "`r Sys.Date()`"
-output: 
+output:
   html_document:
     code_download: true
     toc: true
@@ -57,6 +57,12 @@ hist(pima$age,
 ## Exercise 1: Create multiple histogram plots showing the distributions of all variables
 ```{r}
 # Insert your code here
+hist(pima$pregnant,
+     main="Number of participants by pregnant times in the Pima dataset",
+  xlab="Number of times pregnant",
+  ylab="No. of people",
+  col=viridis(1)
+)
 ```
 
 ## Basic data exploration pt2
@@ -74,6 +80,67 @@ plot(pima$glucose, pima$insulin, main = "Scatterplot of insulin and glucose",
 ## Exercise 2: Create a scatterplot using glucose on the y-axis and BMI on the x-axis.
 ```{r}
 # Insert your code here
+plot(pima$bmi, pima$glucose, main = "Scatterplot of glucose and BMI",
+     xlab = "BMI (weight in kg/(height in metres squared))",
+     ylab = "Glucose level (mg/dL)",
+     pch = 16,
+     col = viridis(2)[pima$test])
+```
+```{r}
+# Insert your code here
+plot(pima$pregnant, pima$glucose, main = "Scatterplot of glucose and pregnant",
+     xlab = "Number of times pregnant)",
+     ylab = "Glucose level (mg/dL)",
+     pch = 16,
+     col = viridis(2)[pima$test])
+```
+```{r}
+# Insert your code here
+plot(pima$diastolic, pima$glucose, main = "Scatterplot of glucose and diastolic",
+     xlab = "Diastolic blood pressure (mm Hg)",
+     ylab = "Glucose level (mg/dL)",
+     pch = 16,
+     col = viridis(2)[pima$test])
+```
+```{r}
+# Insert your code here
+plot(pima$triceps, pima$glucose, main = "Scatterplot of glucose and triceps",
+     xlab = "Triceps skin fold thickness (mm)",
+     ylab = "Glucose level (mg/dL)",
+     pch = 16,
+     col = viridis(2)[pima$test])
+```
+```{r}
+# Insert your code here
+plot(pima$insulin, pima$glucose, main = "Scatterplot of glucose and insulin",
+     xlab = "2-Hour serum insulin (mu U/ml)",
+     ylab = "Glucose level (mg/dL)",
+     pch = 16,
+     col = viridis(2)[pima$test])
+```
+```{r}
+# Insert your code here
+plot(pima$diabetes, pima$glucose, main = "Scatterplot of glucose and diabetes",
+     xlab = "Diabetes pedigree function",
+     ylab = "Glucose level (mg/dL)",
+     pch = 16,
+     col = viridis(2)[pima$test])
+```
+```{r}
+# Insert your code here
+plot(pima$age, pima$glucose, main = "Scatterplot of glucose and age",
+     xlab = "Age (years)",
+     ylab = "Glucose level (mg/dL)",
+     pch = 16,
+     col = viridis(2)[pima$test])
+```
+```{r}
+# Insert your code here
+plot(pima$test, pima$glucose, main = "Scatterplot of glucose and test",
+     xlab = "test whether the patient shows signs of diabetes (coded 0 if negative, 1 if positive)",
+     ylab = "Glucose level (mg/dL)",
+     pch = 16,
+     col = viridis(2)[pima$test])
 ```
 
 
@@ -93,13 +160,25 @@ plot(insulin ~ glucose, data=pima,
      col = viridis(2)[pima$test])
 abline(fit.insulin_glucose)
 ```
-This tells us that the mean insulin level when glucose level = 0 is -118, with reasonable evidence that the interval -157 to -72 contains true intercept value (not informative biologically). For every unit increase of glucose, we expect the individual's insulin level to increase by 2.23 with a 95% confidence interval of 1.92 and 2.55, which is a relatively large effect, with a strong evidence (p-value=8.51e-37). 
-
+This tells us that the mean insulin level when glucose level = 0 is -118, with reasonable evidence that the interval -157 to -72 contains true intercept value (not informative biologically). For every unit increase of glucose, we
+expect the individual's insulin level to increase by 2.23 with a 95% confidence interval of 1.92 and 2.55, which is a relatively large effect, with a strong evidence (p-value=8.51e-37).
 
 ## Exercise 3: Fit a linear regression using glucose as dependent variable and BMI as variable. Interpret this finding.
 ```{r}
 # Insert your code here
+fit.glucose_bmi <- lm(glucose ~ bmi, data=pima) # fit model
+summary(fit.glucose_bmi) # get slope (beta coefficient)
+confint(fit.glucose_bmi) # get confidence interval
+plot(glucose ~ bmi, data=pima,
+     main = "Linear regression using glucose as dependent and bmi as independent variable",
+     xlab = "BMI (weight in kg/(height in metres squared))",
+     ylab = "Glucose level (mg/dL)",
+     pch = 16,
+     col = viridis(2)[pima$test])
+abline(fit.glucose_bmi)
 ```
+
+
 
 ## Visualizing model properties and assumptions
 
@@ -121,7 +200,7 @@ par(mfrow=c(1,1))   ## reset to show 1 plot at a time
 
 We can include other independent variables e.g. age into our model to see their effects.
 ```{r}
-fit.insulin_glucose.age <- lm(insulin ~ glucose + age, data =pima)
+fit.insulin_glucose.age <- lm(insulin ~ glucose + age, data=pima)
 summary(fit.insulin_glucose.age)
 confint(fit.insulin_glucose.age)
 
@@ -134,7 +213,7 @@ To compare these two models, we can look at several metrics. In terms of R-squar
 ## Modelling interactions
 In addition to fitting a model using more independent variables, we should also consider that sometimes our independent variables have synergistic effects i.e. they depend or have an effect on each other. To model this effect we can use the `*` sign into the formula.
 ```{r}
-fit.insulin_glucose.x.age <- lm(insulin ~ glucose * age, data =pima)
+fit.insulin_glucose.x.age <- lm(insulin ~ glucose * age, data=pima)
 summary(fit.insulin_glucose.x.age)
 confint(fit.insulin_glucose.x.age)
 ```
@@ -143,6 +222,16 @@ We can interpret this interaction term (coefficient = -0.016) as having a small 
 ## Exercise 4: Find the best model by fiting multiple linear regression using glucose as dependent variable. Use various metrics to compare them (adjusted R-squared, RSE, F-statistic, ANOVA).
 ```{r}
 # Insert your code here
+fit.all <- lm(glucose ~ ., data=pima) # fit model
+summary(fit.all) # get slope (beta coefficient)
+confint(fit.all) # get confidence interval
+plot(glucose ~ ., data=pima,
+     main = "Linear regression using glucose as dependent and bmi as independent variable",
+     xlab = "BMI (weight in kg/(height in metres squared))",
+     ylab = "Glucose level (mg/dL)",
+     pch = 16,
+     col = viridis(2)[pima$test])
+abline(fit.all)
 ```
 
 ## Logistic regression
@@ -172,11 +261,11 @@ In logistic regression, we quantify and report the effects of different variable
 LO <- 0.04242099
 exp(LO)
 ```
-This means that for every unit increase in glucose level, we expect the odds of the event to increae by 1.04, or a 4% increase.
+This means that for every unit increase in glucose level, we expect the odds of the event to increase by 1.04, or a 4% increase.
 
 ## Comparing Logistic regression models
 
-Unlike linear regression, metrics for comparing logistic regression models are slightly different. We can use McFadden's (pseudo) R-squared which is interpreted in a similar way to the classic R-squared. The AIC measures the trade-off between improving predictability of model and adding parameters. Between nested models, smaller AIC values are better. The null and residual deviances indicate the how well the model fit the data, in a good model you would expect the residual deviance to be smaller than the null. Furthermore, we can test whether the difference in deviance between two models is significant using a chi-squared test or likelihood ratio test (LRT). 
+Unlike linear regression, metrics for comparing logistic regression models are slightly different. We can use McFadden's (pseudo) R-squared which is interpreted in a similar way to the classic R-squared. The AIC measures the trade-off between improving predictability of model and adding parameters. Between nested models, smaller AIC values are better. The null and residual deviances indicate the how well the model fit the data, in a good model you would expect the residual deviance to be smaller than the null. Furthermore, we can test whether the difference in deviance between two models is significant using a chi-squared test or likelihood ratio test (LRT).
 ```{r}
 ### McFadden's (pseudo) R-squared
 fit.test_glucose <- glm(test ~ glucose,family =  binomial, pima)
@@ -197,32 +286,38 @@ Taken together, the McFadden's R-squared, AIC, deviance test indicate that the m
 ## Exercise 5: Fit a logistic regression with the result of the diabetes test as the dependent variable and all other variables as independents. Interpret the findings, and compare to see if it is the better model.
 ```{r}
 # Insert your code here
-# fit.all <- glm()
+fit.test_glucose <- glm(test ~ glucose, family =  binomial, pima)
+fit.all <- glm(test ~ .,family = binomial,pima)
+nullmod <- glm(test~1, family=binomial, pima)
+1-logLik(fit.all)/logLik(nullmod)
+
+summary(fit.all)
+anova(fit.test_glucose, fit.all, test="LRT")
 ```
 
 
 ## Example
 What is the difference in the log-odds of testing positive for diabetes for a woman with a glucose level at the third quartile compared with a woman with an average glucose, assuming that all other factors are held constant? Then calculate the associated odds ratio value, and give a 95% confidence interval for this odds ratio.
 ```{r}
-# summary(pima$glucose) # mean = 122.6, 3rd quartile = 143.0
-# 
-# fit.summary <- summary(fit.all)
-# fit.summary
-# 
-# # Log-odds difference
-# LO <- coef(fit.all)["glucose"]
-# 
-# diff = LO * (143.0 - 122.6)
-# 
-# # Estimated log-odds ratio
-# exp(diff)
-# 
-# # 95% conf int for odds ratio
-# conf_int_odds <- cbind(diff - 1.96*fit.summary$coefficients[3,2] * (143.0 - 122.6),
-#                        diff + 1.96*fit.summary$coefficients[3,2] * (143.0 - 122.6))
-# 
-# # 95% conf int for estimated odds ratio
-# exp(conf_int_odds)
+summary(pima$glucose) # mean = 122.6, 3rd quartile = 143.0
+
+fit.summary <- summary(fit.all)
+fit.summary
+
+# Log-odds difference
+LO <- coef(fit.all)["glucose"]
+
+diff = LO * (143.0 - 122.6)
+
+# Estimated log-odds ratio
+exp(diff)
+
+# 95% conf int for odds ratio
+conf_int_odds <- cbind(diff - 1.96*fit.summary$coefficients[3,2] * (143.0 - 122.6),
+                       diff + 1.96*fit.summary$coefficients[3,2] * (143.0 - 122.6))
+
+# 95% conf int for estimated odds ratio
+exp(conf_int_odds)
 ```
 
 
@@ -235,4 +330,3 @@ What is the difference in the log-odds of testing positive for diabetes for a wo
 # Insert your code here
 
 ```
-
